@@ -12,11 +12,10 @@ interface User {
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  // We might add the GitHub token here later
-  // githubToken: string | null;
+  githubAccessToken: string | null;
   login: (user: User) => void;
   logout: () => void;
-  // setGithubToken: (token: string | null) => void;
+  setGithubAccessToken: (token: string | null) => void;
 }
 
 // Create the store using persist middleware
@@ -26,13 +25,13 @@ export const useAuthStore = create<AuthState>()(
       // Initial state
       user: null,
       isAuthenticated: false,
-      // githubToken: null,
+      githubAccessToken: null,
 
       // Actions
       login: (user) => set({ user, isAuthenticated: true }),
       logout: () =>
-        set({ user: null, isAuthenticated: false /* githubToken: null */ }),
-      // setGithubToken: (token) => set({ githubToken: token }),
+        set({ user: null, isAuthenticated: false, githubAccessToken: null }),
+      setGithubAccessToken: (token) => set({ githubAccessToken: token }),
     }),
     {
       name: "auth-storage", // Key used in localStorage
@@ -41,11 +40,10 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-        // githubToken: state.githubToken, // Add this if/when we store the token
+        githubAccessToken: state.githubAccessToken,
       }),
     }
   )
 );
 
-// Optional: Export the User type if needed elsewhere
 export type { User };

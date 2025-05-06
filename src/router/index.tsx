@@ -11,6 +11,7 @@ import {
 import { LoginPage } from "../pages/LoginPage";
 import { SignupPage } from "../pages/SignupPage";
 import { RepositoriesPage } from "../pages/RepositoriesPage";
+import { GitHubAuthCallbackPage } from "../pages/GitHubAuthCallbackPage";
 import { useAuthStore } from "../store/auth.store";
 
 // Placeholder Page Components
@@ -149,6 +150,10 @@ const router = createBrowserRouter([
         path: "signup",
         element: <SignupPage />,
         // No loader needed for public routes
+      },
+      {
+        path: "auth/github/callback",
+        element: <GitHubAuthCallbackPage />,
       },
     ],
   },
