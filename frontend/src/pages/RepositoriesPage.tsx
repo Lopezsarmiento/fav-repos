@@ -1,3 +1,4 @@
+import React from "react";
 import type { Repository } from "../features/repositories/types";
 import { RepositoryItem } from "../features/repositories/components/RepositoryItem";
 import { useAuthStore } from "../store/auth.store";
