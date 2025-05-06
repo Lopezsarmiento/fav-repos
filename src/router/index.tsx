@@ -6,15 +6,16 @@ import {
   Link,
   useNavigate,
   redirect, // Import redirect
+  Navigate,
 } from "react-router-dom";
 import { LoginPage } from "../pages/LoginPage";
 import { SignupPage } from "../pages/SignupPage";
+import { RepositoriesPage } from "../pages/RepositoriesPage";
 import { useAuthStore } from "../store/auth.store";
 
 // Placeholder Page Components
-const RepositoriesPage = () => (
-  <div className="p-4">Repositories Page Placeholder (Home - Protected)</div>
-);
+const HomeRedirect = () => <Navigate to="/repositories" replace />;
+
 const FavoritesPage = () => (
   <div className="p-4">Favorites Page Placeholder (Protected)</div>
 );
@@ -58,14 +59,14 @@ const RootLayout = () => {
         <ul className="flex items-center space-x-6 container mx-auto">
           {/* Conditionally render Repositories link only if authenticated? Or always visible?
                   Let's keep it always visible for now, loader will protect the page */}
-          <li>
-            <Link to="/" className="hover:underline">
-              Repositories
-            </Link>
-          </li>
 
           {isAuthenticated ? (
             <>
+              <li>
+                <Link to="/repositories" className="hover:underline">
+                  Repositories
+                </Link>
+              </li>
               <li>
                 <Link to="/favorites" className="hover:underline">
                   Favorites
@@ -120,6 +121,11 @@ const router = createBrowserRouter([
       // --- Apply loader to protected routes ---
       {
         index: true, // Represents the '/' path relative to the parent
+        element: <HomeRedirect />,
+        loader: protectedLoader, // Add loader here
+      },
+      {
+        path: "repositories",
         element: <RepositoriesPage />,
         loader: protectedLoader, // Add loader here
       },
