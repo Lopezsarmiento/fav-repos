@@ -1,85 +1,63 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import type { Repository } from "../features/repositories/types";
 import { RepositoryItem } from "../features/repositories/components/RepositoryItem";
 import { useAuthStore } from "../store/auth.store";
-import { useState } from "react";
-import { generateCodeVerifier } from "../features/auth/utils/pkce";
-import { generateCodeChallenge } from "../features/auth/utils/pkce";
+import {
+  generateCodeVerifier,
+  generateCodeChallenge,
+} from "../features/auth/utils/pkce";
+import { fetchUserRepositories } from "../features/repositories/api/githubAPI";
 
-// --- GitHub OAuth Configuration ---
-// IMPORTANT: Replace with your actual Client ID and ensure Redirect URI matches your GitHub App settings
-// TODO move to env variables
-const GITHUB_CLIENT_ID = "Ov23liNVBP07iWV4iAtN";
-const GITHUB_REDIRECT_URI = "http://localhost:5173/auth/github/callback"; // Or your configured port
-const GITHUB_SCOPES = "read:user repo public_repo user:email"; // Added user:email for potentially fetching user info
-// --- End GitHub OAuth Configuration ---
-
-// Mock Data - Replace with actual data fetching later
-const mockOwnedRepositories: Repository[] = [
-  {
-    id: "owned-1",
-    name: "my-first-amazing-app",
-    description:
-      "A revolutionary application built with cutting-edge technology and a lot of coffee. It solves a problem you didn't even know you had.",
-    language: "TypeScript",
-    stargazers_count: 199,
-    forks_count: 42,
-    updated_at: "2024-03-10T10:00:00Z",
-    html_url: "https://github.com/your-username/my-first-amazing-app",
-  },
-  {
-    id: "owned-2",
-    name: "project-phoenix",
-    description: null, // No description
-    language: "Python",
-    stargazers_count: 75,
-    forks_count: 15,
-    updated_at: "2024-02-15T14:30:00Z",
-    html_url: "https://github.com/your-username/project-phoenix",
-  },
-  {
-    id: "owned-3",
-    name: "dotfiles-and-configs",
-    description:
-      "My personal collection of dotfiles, scripts, and configurations for various tools and environments.",
-    language: "Shell",
-    stargazers_count: 12,
-    forks_count: 3,
-    updated_at: "2023-12-01T11:20:00Z",
-    html_url: "https://github.com/your-username/dotfiles-and-configs",
-  },
-];
-
-const mockFavoriteRepositories: Repository[] = [
-  {
-    id: "fav-1",
-    name: "awesome-react-framework",
-    description:
-      "A very popular and comprehensive framework for building modern web applications with React. Features a great developer experience.",
-    language: "JavaScript",
-    stargazers_count: 150234,
-    forks_count: 35678,
-    updated_at: "2024-03-01T12:00:00Z",
-    html_url: "https://github.com/popular-org/awesome-react-framework",
-  },
-  {
-    id: "fav-2",
-    name: "data-science-toolkit",
-    description:
-      "An indispensable library for data manipulation, analysis, and visualization in Python.",
-    language: "Python",
-    stargazers_count: 85000,
-    forks_count: 23000,
-    updated_at: "2024-03-05T09:15:00Z",
-    html_url: "https://github.com/another-org/data-science-toolkit",
-  },
-];
+const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+const GITHUB_REDIRECT_URI = import.meta.env.VITE_GITHUB_REDIRECT_URI;
+const GITHUB_SCOPES = import.meta.env.VITE_GITHUB_SCOPES;
 
 // Note: Ensure this component name matches what's expected in your router
 export const RepositoriesPage = () => {
   const githubAccessToken = useAuthStore((state) => state.githubAccessToken);
-
   const [isLoadingGithubData, setIsLoadingGithubData] = useState(false);
+  const [ownedRepositories, setOwnedRepositories] = useState<Repository[]>([]);
+  const [favoriteRepositories, setFavoriteRepositories] = useState<
+    Repository[]
+  >([]);
+  const [isLoadingRepos, setIsLoadingRepos] = useState(false);
+  const [reposError, setReposError] = useState<string | null>(null);
+
+  // Inside RepositoriesPage component
+  useEffect(() => {
+    if (githubAccessToken) {
+      const loadRepositories = async () => {
+        setIsLoadingRepos(true);
+        setReposError(null);
+        try {
+          const userRepos = await fetchUserRepositories();
+          setOwnedRepositories(userRepos);
+          // Later, you'll also fetch favoriteRepos here
+          // const starredRepos = await fetchStarredRepositories();
+          // setFavoriteRepositories(starredRepos);
+        } catch (err: unknown) {
+          console.error("Failed to fetch repositories:", err);
+
+          const errorMessage =
+            err instanceof Error ? err.message : "Failed to load repositories.";
+
+          setReposError(errorMessage);
+
+          if (errorMessage.includes("401") || errorMessage.includes("token")) {
+            // Potentially clear the token if it's invalid, prompting re-auth
+            // useAuthStore.getState().setGithubAccessToken(null);
+          }
+        } finally {
+          setIsLoadingRepos(false);
+        }
+      };
+      loadRepositories();
+    } else {
+      // Clear repos if token is removed (e.g., user logs out from GitHub elsewhere or token expires)
+      setOwnedRepositories([]);
+      setFavoriteRepositories([]);
+    }
+  }, [githubAccessToken]); // Re-run if githubAccessToken changes
 
   const handleGithubLogin = async () => {
     setIsLoadingGithubData(true);
@@ -104,28 +82,27 @@ export const RepositoriesPage = () => {
     }
   };
 
-  // TODO: Add loading and error states when fetching real data
-  // const [isLoading, setIsLoading] = useState(true);
-  // const [error, setError] = useState<string | null>(null);
-  // const [ownedRepos, setOwnedRepos] = useState<Repository[]>([]);
-  // const [favoriteRepos, setFavoriteRepos] = useState<Repository[]>([]);
+  if (isLoadingRepos) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        Loading your repositories...
+      </div>
+    );
+  }
 
-  // useEffect(() => {
-  //   // Simulate fetching data
-  //   setTimeout(() => {
-  //     setOwnedRepos(mockOwnedRepositories);
-  //     setFavoriteRepos(mockFavoriteRepositories);
-  //     setIsLoading(false);
-  //   }, 1000);
-  // }, []);
-
-  // if (isLoading) {
-  //   return <div className="container mx-auto p-6 text-center">Loading repositories...</div>;
-  // }
-
-  // if (error) {
-  //   return <div className="container mx-auto p-6 text-center text-red-500">Error loading repositories: {error}</div>;
-  // }
+  if (reposError) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <h1 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-4">
+          Error Loading Repositories
+        </h1>
+        <p className="text-neutral-700 dark:text-neutral-300 mb-6">
+          {reposError}
+        </p>
+        {/* Optionally, add a button to try reconnecting or logging out */}
+      </div>
+    );
+  }
 
   if (!githubAccessToken) {
     return (
@@ -169,36 +146,40 @@ export const RepositoriesPage = () => {
         <h1 className="text-2xl md:text-3xl font-semibold text-neutral-800 dark:text-neutral-100 mb-6 border-b border-neutral-300 dark:border-neutral-600 pb-3">
           My Repositories
         </h1>
-        {mockOwnedRepositories.length > 0 ? (
+        {ownedRepositories.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {mockOwnedRepositories.map((repo) => (
+            {ownedRepositories.map((repo) => (
               <RepositoryItem key={repo.id} repo={repo} />
             ))}
           </div>
         ) : (
           <p className="text-neutral-600 dark:text-neutral-400">
-            You don\'t seem to have any repositories, or we couldn\'t fetch
-            them.
+            No repositories found. You might not have any, or there was an issue
+            fetching them.
           </p>
         )}
       </section>
 
       <section>
         <h2 className="text-2xl md:text-3xl font-semibold text-neutral-800 dark:text-neutral-100 mb-6 border-b border-neutral-300 dark:border-neutral-600 pb-3">
-          Favorite Repositories
+          Favorite Repositories (Coming Soon)
         </h2>
-        {mockFavoriteRepositories.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {mockFavoriteRepositories.map((repo) => (
-              <RepositoryItem key={repo.id} repo={repo} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-neutral-600 dark:text-neutral-400">
-            You haven\'t favorited any repositories yet, or we couldn\'t fetch
-            them.
-          </p>
-        )}
+        {/*
+          {favoriteRepositories.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {favoriteRepositories.map((repo) => (
+                <RepositoryItem key={repo.id} repo={repo} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-neutral-600 dark:text-neutral-400">
+              You haven't favorited any repositories yet, or we couldn't fetch them.
+            </p>
+          )}
+          */}
+        <p className="text-neutral-600 dark:text-neutral-400">
+          Favorite repositories will be implemented soon.
+        </p>
       </section>
     </div>
   );

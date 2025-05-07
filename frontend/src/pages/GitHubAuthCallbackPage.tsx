@@ -1,12 +1,10 @@
 // src/pages/GitHubAuthCallbackPage.tsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../store/auth.store";
 
-// These should ideally match or be sourced from the same place as in RepositoriesPage/LoginPage
-// Or even better, use environment variables for these that are shared.
-//const GITHUB_CLIENT_ID = "Ov23liNVBP07iWV4iAtN"; // REPLACE with your Client ID
-//const GITHUB_REDIRECT_URI = "http://localhost:5173/auth/github/callback"; // Must match your GitHub app config
+const GITHUB_EXCHANGE_TOKEN_URL = import.meta.env
+  .VITE_GITHUB_EXCHANGE_TOKEN_URL;
 
 export const GitHubAuthCallbackPage = () => {
   const navigate = useNavigate();
@@ -14,7 +12,7 @@ export const GitHubAuthCallbackPage = () => {
   const setGithubAccessToken = useAuthStore(
     (state) => state.setGithubAccessToken
   );
-  const localAppLogin = useAuthStore((state) => state.login); // If needed for re-login logic
+  const localAppLogin = useAuthStore((state) => state.login);
   const localUser = useAuthStore((state) => state.user);
 
   const [error, setError] = useState<string | null>(null);
@@ -27,25 +25,19 @@ export const GitHubAuthCallbackPage = () => {
     if (code && codeVerifier) {
       const exchangeToken = async () => {
         try {
-          const response = await fetch(
-            "http://localhost:3001/api/auth/github/exchange-token",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json", // Important to get JSON response
-              },
-              body: JSON.stringify({
-                //client_id: GITHUB_CLIENT_ID,
-                code: code,
-                // redirect_uri: GITHUB_REDIRECT_URI,
-                // grant_type: "authorization_code",
-                code_verifier: codeVerifier,
-              }),
-            }
-          );
+          const response = await fetch(GITHUB_EXCHANGE_TOKEN_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              code: code,
+              code_verifier: codeVerifier,
+            }),
+          });
 
-          localStorage.removeItem("github_code_verifier"); // Clean up verifier
+          localStorage.removeItem("github_code_verifier");
 
           if (!response.ok) {
             const errorData = await response.json();
@@ -61,17 +53,7 @@ export const GitHubAuthCallbackPage = () => {
 
           if (data.access_token) {
             setGithubAccessToken(data.access_token);
-
-            // Optional: If local user session was lost but GitHub auth succeeded,
-            // you might re-establish a placeholder local session or fetch GitHub user info
-            // to create/update the local user profile.
-            // For now, we assume the local user is still logged in.
-            // if (!localUser && data.access_token) {
-            //   // Potentially fetch github user profile here with the new token
-            //   // and then call localAppLogin({ username: githubUsername });
-            // }
-
-            navigate("/repositories", { replace: true }); // Redirect to repositories page
+            navigate("/repositories", { replace: true });
           } else {
             throw new Error(
               data.error_description ||
@@ -85,7 +67,7 @@ export const GitHubAuthCallbackPage = () => {
               ? err.message
               : "An error occurred during GitHub authentication."
           );
-          localStorage.removeItem("github_code_verifier"); // Ensure cleanup on error
+          localStorage.removeItem("github_code_verifier");
         } finally {
           setIsLoading(false);
         }
@@ -97,9 +79,9 @@ export const GitHubAuthCallbackPage = () => {
         "Authorization code or verifier not found. Please try logging in again."
       );
       setIsLoading(false);
-      localStorage.removeItem("github_code_verifier"); // Ensure cleanup
+      localStorage.removeItem("github_code_verifier");
     }
-  }, [searchParams, navigate, setGithubAccessToken, localAppLogin, localUser]); // Added localUser
+  }, [searchParams, navigate, setGithubAccessToken, localAppLogin, localUser]);
 
   if (isLoading) {
     return (
@@ -117,7 +99,7 @@ export const GitHubAuthCallbackPage = () => {
         </h1>
         <p className="text-neutral-700 dark:text-neutral-300 mb-6">{error}</p>
         <button
-          onClick={() => navigate("/repositories")} // Or navigate('/login')
+          onClick={() => navigate("/repositories")}
           className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Go to Repositories
@@ -126,7 +108,6 @@ export const GitHubAuthCallbackPage = () => {
     );
   }
 
-  // Should ideally not reach here if navigation occurs
   return (
     <div className="container mx-auto p-6 text-center">Redirecting...</div>
   );
