@@ -5,8 +5,8 @@ import { useAuthStore } from "../store/auth.store";
 
 // These should ideally match or be sourced from the same place as in RepositoriesPage/LoginPage
 // Or even better, use environment variables for these that are shared.
-const GITHUB_CLIENT_ID = "Ov23liNVBP07iWV4iAtN"; // REPLACE with your Client ID
-const GITHUB_REDIRECT_URI = "http://localhost:5173/auth/github/callback"; // Must match your GitHub app config
+//const GITHUB_CLIENT_ID = "Ov23liNVBP07iWV4iAtN"; // REPLACE with your Client ID
+//const GITHUB_REDIRECT_URI = "http://localhost:5173/auth/github/callback"; // Must match your GitHub app config
 
 export const GitHubAuthCallbackPage = () => {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export const GitHubAuthCallbackPage = () => {
       const exchangeToken = async () => {
         try {
           const response = await fetch(
-            "https://github.com/login/oauth/access_token",
+            "http://localhost:3001/api/auth/github/exchange-token",
             {
               method: "POST",
               headers: {
@@ -36,10 +36,10 @@ export const GitHubAuthCallbackPage = () => {
                 Accept: "application/json", // Important to get JSON response
               },
               body: JSON.stringify({
-                client_id: GITHUB_CLIENT_ID,
+                //client_id: GITHUB_CLIENT_ID,
                 code: code,
-                redirect_uri: GITHUB_REDIRECT_URI,
-                grant_type: "authorization_code",
+                // redirect_uri: GITHUB_REDIRECT_URI,
+                // grant_type: "authorization_code",
                 code_verifier: codeVerifier,
               }),
             }
@@ -56,6 +56,8 @@ export const GitHubAuthCallbackPage = () => {
           }
 
           const data = await response.json();
+
+          console.log("GitHub token exchange response:", data);
 
           if (data.access_token) {
             setGithubAccessToken(data.access_token);
