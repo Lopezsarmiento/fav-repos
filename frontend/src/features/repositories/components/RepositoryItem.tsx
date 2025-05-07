@@ -1,25 +1,46 @@
 import type { Repository } from "../types"; // Using type-only import
-
-// Consider adding icons later for a richer UI
-// import { StarIcon, RepoForkedIcon, LawIcon, CalendarIcon } from '@primer/octicons-react';
+import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
+import { StarIcon as StarOutlineIcon } from "@heroicons/react/24/outline";
 
 interface RepositoryItemProps {
   repo: Repository;
+  isFavorite: boolean;
+  onToggleFavorite: (repoId: string | number) => void;
 }
 
-export const RepositoryItem = ({ repo }: RepositoryItemProps) => {
+export const RepositoryItem = ({
+  repo,
+  isFavorite,
+  onToggleFavorite,
+}: RepositoryItemProps) => {
   const lastUpdated = new Date(repo.updated_at).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
 
-  // Simple colored dot for language - you can expand this with a color mapping
-  const languageColor = "bg-blue-500"; // Default color
+  const handleFavoriteClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onToggleFavorite(repo.id);
+  };
 
   return (
-    <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-sm bg-white dark:bg-neutral-800 hover:shadow-lg transition-shadow duration-150 ease-in-out">
-      <div className="mb-2">
+    <div className="relative p-4 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-sm bg-white dark:bg-neutral-800 hover:shadow-lg transition-shadow duration-150 ease-in-out">
+      <button
+        onClick={handleFavoriteClick}
+        className="absolute top-3 right-3 p-1 text-gray-500 hover:text-yellow-500 dark:text-gray-400 dark:hover:text-yellow-400 focus:outline-none z-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        title={isFavorite ? "Remove from favorites" : "Add to favorites"} // Tooltip for better UX
+      >
+        {isFavorite ? (
+          <StarSolidIcon className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />
+        ) : (
+          <StarOutlineIcon className="w-6 h-6" />
+        )}
+      </button>
+
+      <div className="mb-2 pr-10">
         <a
           href={repo.html_url}
           target="_blank"
@@ -35,23 +56,11 @@ export const RepositoryItem = ({ repo }: RepositoryItemProps) => {
       <div className="flex flex-wrap items-center text-xs text-neutral-500 dark:text-neutral-400 gap-x-4 gap-y-1">
         {repo.language && (
           <span className="flex items-center">
-            <span
-              className={`w-3 h-3 rounded-full ${languageColor} mr-1.5`}
-            ></span>
-            {/* <LawIcon className="mr-1" /> */}
+            <span className={`w-3 h-3 rounded-full bg-blue-500 mr-1.5`}></span>
             {repo.language}
           </span>
         )}
-        <span className="flex items-center">
-          {/* <StarIcon className="mr-1" /> */}
-          Stars: {repo.stargazers_count.toLocaleString()}
-        </span>
-        <span className="flex items-center">
-          {/* <RepoForkedIcon className="mr-1" /> */}
-          Forks: {repo.forks_count.toLocaleString()}
-        </span>
         <span className="flex items-center whitespace-nowrap">
-          {/* <CalendarIcon className="mr-1" /> */}
           Updated: {lastUpdated}
         </span>
       </div>

@@ -13,25 +13,38 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   githubAccessToken: string | null;
+  favoriteRepoIds: (string | number)[];
   login: (user: User) => void;
   logout: () => void;
   setGithubAccessToken: (token: string | null) => void;
+  addFavoriteRepo: (repoId: string | number) => void;
+  removeFavoriteRepo: (repoId: string | number) => void;
 }
 
 // Create the store using persist middleware
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      // Initial state
+      // initial state
       user: null,
       isAuthenticated: false,
       githubAccessToken: null,
-
-      // Actions
+      favoriteRepoIds: [],
+      // actions
       login: (user) => set({ user, isAuthenticated: true }),
       logout: () =>
         set({ user: null, isAuthenticated: false, githubAccessToken: null }),
       setGithubAccessToken: (token) => set({ githubAccessToken: token }),
+      addFavoriteRepo: (repoId) =>
+        set((state) => ({
+          favoriteRepoIds: state.favoriteRepoIds.includes(repoId)
+            ? state.favoriteRepoIds
+            : [...state.favoriteRepoIds, repoId],
+        })),
+      removeFavoriteRepo: (repoId) =>
+        set((state) => ({
+          favoriteRepoIds: state.favoriteRepoIds.filter((id) => id !== repoId),
+        })),
     }),
     {
       name: "auth-storage", // Key used in localStorage
