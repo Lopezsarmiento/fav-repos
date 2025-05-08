@@ -7,7 +7,7 @@ This is a single-page web application built with React (Frontend) and Node.js/Ex
 1.  **Sign Up & Login:** Create an account and log in using a local username/password system (credentials stored in browser's local storage for this demo).
 2.  **Connect GitHub Account:** Securely connect their GitHub account using the OAuth 2.0 Authorization Code flow with PKCE.
 3.  **View Repositories:** List all repositories owned by the connected GitHub user.
-4.  **Manage App-Specific Favorites:** Mark repositories from their list as "favorite" within the application. These favorites are specific to this app and persisted locally. _(Search/Filter functionality to be added)_.
+4.  **Manage App-Specific Favorites:** Mark repositories from their list as "favorite" within the application. These favorites are specific to this app and persisted locally.
 
 The project uses a monorepo structure with separate `frontend` and `backend` directories.
 

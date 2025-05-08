@@ -25,6 +25,7 @@ export const RepositoriesPage = () => {
   const [ownedRepositories, setOwnedRepositories] = useState<Repository[]>([]);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
   const [reposError, setReposError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (githubAccessToken) {
@@ -116,11 +117,21 @@ export const RepositoriesPage = () => {
     );
   }
 
-  const favoritedRepositories = ownedRepositories.filter((repo) =>
+  const filteredOwnedRepositories = ownedRepositories.filter((repo) => {
+    const lowerSearchQuery = searchQuery.toLowerCase().trim();
+    if (!lowerSearchQuery) return true;
+    const nameMatch = repo.name.toLowerCase().includes(lowerSearchQuery);
+    const descriptionMatch = repo.description
+      ? repo.description.toLowerCase().includes(lowerSearchQuery)
+      : false;
+    return nameMatch || descriptionMatch;
+  });
+
+  const favoritedRepositories = filteredOwnedRepositories.filter((repo) =>
     favoriteRepoIds.includes(repo.id)
   );
 
-  const nonFavoritedRepositories = ownedRepositories.filter(
+  const nonFavoritedRepositories = filteredOwnedRepositories.filter(
     (repo) => !favoriteRepoIds.includes(repo.id)
   );
 
@@ -159,6 +170,21 @@ export const RepositoriesPage = () => {
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
+      <div className="mb-8">
+        {" "}
+        {/* Add margin-bottom */}
+        <label htmlFor="repo-search" className="sr-only">
+          Search Your Repositories
+        </label>
+        <input
+          type="search"
+          id="repo-search"
+          placeholder="Search your repositories by name or description..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="block w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 sm:text-sm dark:bg-neutral-700 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400"
+        />
+      </div>
       <section className="mb-12">
         <h1 className="text-2xl md:text-3xl font-semibold text-neutral-800 dark:text-neutral-100 mb-6 border-b border-neutral-300 dark:border-neutral-600 pb-3">
           My Repositories
