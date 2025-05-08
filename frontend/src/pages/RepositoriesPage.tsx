@@ -12,18 +12,20 @@ const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
 const GITHUB_REDIRECT_URI = import.meta.env.VITE_GITHUB_REDIRECT_URI;
 const GITHUB_SCOPES = import.meta.env.VITE_GITHUB_SCOPES;
 
-// Note: Ensure this component name matches what's expected in your router
 export const RepositoriesPage = () => {
   const githubAccessToken = useAuthStore((state) => state.githubAccessToken);
+  const setGithubAccessToken = useAuthStore(
+    (state) => state.setGithubAccessToken
+  );
+  const favoriteRepoIds = useAuthStore((state) => state.favoriteRepoIds);
+  const addFavoriteRepo = useAuthStore((state) => state.addFavoriteRepo);
+  const removeFavoriteRepo = useAuthStore((state) => state.removeFavoriteRepo);
+
   const [isLoadingGithubData, setIsLoadingGithubData] = useState(false);
   const [ownedRepositories, setOwnedRepositories] = useState<Repository[]>([]);
-  const [favoriteRepositories, setFavoriteRepositories] = useState<
-    Repository[]
-  >([]);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
   const [reposError, setReposError] = useState<string | null>(null);
 
-  // Inside RepositoriesPage component
   useEffect(() => {
     if (githubAccessToken) {
       const loadRepositories = async () => {
@@ -32,9 +34,6 @@ export const RepositoriesPage = () => {
         try {
           const userRepos = await fetchUserRepositories();
           setOwnedRepositories(userRepos);
-          // Later, you'll also fetch favoriteRepos here
-          // const starredRepos = await fetchStarredRepositories();
-          // setFavoriteRepositories(starredRepos);
         } catch (err: unknown) {
           console.error("Failed to fetch repositories:", err);
 
@@ -44,8 +43,7 @@ export const RepositoriesPage = () => {
           setReposError(errorMessage);
 
           if (errorMessage.includes("401") || errorMessage.includes("token")) {
-            // Potentially clear the token if it's invalid, prompting re-auth
-            // useAuthStore.getState().setGithubAccessToken(null);
+            setGithubAccessToken(null);
           }
         } finally {
           setIsLoadingRepos(false);
@@ -53,11 +51,17 @@ export const RepositoriesPage = () => {
       };
       loadRepositories();
     } else {
-      // Clear repos if token is removed (e.g., user logs out from GitHub elsewhere or token expires)
       setOwnedRepositories([]);
-      setFavoriteRepositories([]);
     }
-  }, [githubAccessToken]); // Re-run if githubAccessToken changes
+  }, [githubAccessToken, setGithubAccessToken]);
+
+  const handleToggleFavorite = (repoId: string | number) => {
+    if (favoriteRepoIds.includes(repoId)) {
+      removeFavoriteRepo(repoId);
+    } else {
+      addFavoriteRepo(repoId);
+    }
+  };
 
   const handleGithubLogin = async () => {
     setIsLoadingGithubData(true);
@@ -99,16 +103,30 @@ export const RepositoriesPage = () => {
         <p className="text-neutral-700 dark:text-neutral-300 mb-6">
           {reposError}
         </p>
-        {/* Optionally, add a button to try reconnecting or logging out */}
+        <button
+          onClick={handleGithubLogin}
+          disabled={isLoadingGithubData}
+          className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-neutral-800 hover:bg-neutral-700 dark:bg-neutral-700 dark:hover:bg-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 disabled:opacity-50"
+        >
+          {isLoadingGithubData
+            ? "Redirecting..."
+            : "Try Connecting to GitHub Again"}
+        </button>
       </div>
     );
   }
 
+  const favoritedRepositories = ownedRepositories.filter((repo) =>
+    favoriteRepoIds.includes(repo.id)
+  );
+
+  const nonFavoritedRepositories = ownedRepositories.filter(
+    (repo) => !favoriteRepoIds.includes(repo.id)
+  );
+
   if (!githubAccessToken) {
     return (
       <div className="container mx-auto p-6 text-center flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
-        {" "}
-        {/* Adjust min-h as needed */}
         <h1 className="text-2xl font-semibold text-neutral-800 dark:text-neutral-100 mb-4">
           Connect to GitHub
         </h1>
@@ -121,7 +139,6 @@ export const RepositoriesPage = () => {
           disabled={isLoadingGithubData}
           className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-neutral-800 hover:bg-neutral-700 dark:bg-neutral-700 dark:hover:bg-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 disabled:opacity-50"
         >
-          {/* You can add a GitHub icon here */}
           <svg
             className="w-5 h-5 mr-2 -ml-1"
             fill="currentColor"
@@ -146,10 +163,15 @@ export const RepositoriesPage = () => {
         <h1 className="text-2xl md:text-3xl font-semibold text-neutral-800 dark:text-neutral-100 mb-6 border-b border-neutral-300 dark:border-neutral-600 pb-3">
           My Repositories
         </h1>
-        {ownedRepositories.length > 0 ? (
+        {nonFavoritedRepositories.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {ownedRepositories.map((repo) => (
-              <RepositoryItem key={repo.id} repo={repo} />
+            {nonFavoritedRepositories.map((repo) => (
+              <RepositoryItem
+                key={repo.id}
+                repo={repo}
+                isFavorite={false}
+                onToggleFavorite={handleToggleFavorite}
+              />
             ))}
           </div>
         ) : (
@@ -162,24 +184,25 @@ export const RepositoriesPage = () => {
 
       <section>
         <h2 className="text-2xl md:text-3xl font-semibold text-neutral-800 dark:text-neutral-100 mb-6 border-b border-neutral-300 dark:border-neutral-600 pb-3">
-          Favorite Repositories (Coming Soon)
+          Favorite Repositories
         </h2>
-        {/*
-          {favoriteRepositories.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {favoriteRepositories.map((repo) => (
-                <RepositoryItem key={repo.id} repo={repo} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-neutral-600 dark:text-neutral-400">
-              You haven't favorited any repositories yet, or we couldn't fetch them.
-            </p>
-          )}
-          */}
-        <p className="text-neutral-600 dark:text-neutral-400">
-          Favorite repositories will be implemented soon.
-        </p>
+
+        {favoritedRepositories.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {favoritedRepositories.map((repo) => (
+              <RepositoryItem
+                key={repo.id}
+                repo={repo}
+                isFavorite={true}
+                onToggleFavorite={handleToggleFavorite}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-neutral-600 dark:text-neutral-400">
+            You haven't favorited any repositories yet.
+          </p>
+        )}
       </section>
     </div>
   );

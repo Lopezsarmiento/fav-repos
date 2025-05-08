@@ -1,4 +1,3 @@
-// src/features/auth/components/SignupForm.tsx
 import React, { useState } from "react";
 import clsx from "clsx";
 
@@ -22,14 +21,13 @@ export const SignupForm = ({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setPasswordsMatchError(null); // Clear previous match error
+    setPasswordsMatchError(null);
 
     if (password !== confirmPassword) {
       setPasswordsMatchError("Passwords do not match.");
-      return; // Stop submission if passwords don't match
+      return;
     }
 
-    // Proceed with submission if passwords match
     onSubmit({ username, password });
   };
 
@@ -42,7 +40,6 @@ export const SignupForm = ({
         Sign Up
       </h2>
 
-      {/* Combined Error Display Area */}
       {(errorMessage || passwordsMatchError) && (
         <div
           className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded relative"
@@ -53,10 +50,9 @@ export const SignupForm = ({
         </div>
       )}
 
-      {/* Username Input */}
       <div>
         <label
-          htmlFor="signup-username" // Use unique ID
+          htmlFor="signup-username"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           Username
@@ -66,7 +62,7 @@ export const SignupForm = ({
           id="signup-username"
           name="username"
           required
-          minLength={3} // Add basic validation
+          minLength={3}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           disabled={isLoading}
@@ -80,7 +76,6 @@ export const SignupForm = ({
         />
       </div>
 
-      {/* Password Input */}
       <div>
         <label
           htmlFor="signup-password"
@@ -93,7 +88,7 @@ export const SignupForm = ({
           id="signup-password"
           name="password"
           required
-          minLength={6} // Add basic validation
+          minLength={6}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={isLoading}
@@ -107,7 +102,6 @@ export const SignupForm = ({
         />
       </div>
 
-      {/* Confirm Password Input */}
       <div>
         <label
           htmlFor="confirm-password"
@@ -128,14 +122,12 @@ export const SignupForm = ({
             "focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400",
             "sm:text-sm dark:bg-gray-700 dark:text-white",
             { "bg-gray-100 dark:bg-gray-700 cursor-not-allowed": isLoading },
-            // Highlight if passwords don't match (after trying to submit)
             passwordsMatchError ? "border-red-500" : ""
           )}
           placeholder="Confirm your password"
         />
       </div>
 
-      {/* Submit Button */}
       <div>
         <button
           type="submit"

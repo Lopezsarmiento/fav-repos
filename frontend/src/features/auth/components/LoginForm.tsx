@@ -1,6 +1,5 @@
-// src/features/auth/components/LoginForm.tsx
 import React, { useState } from "react";
-import clsx from "clsx"; // For conditional classes
+import clsx from "clsx";
 
 interface LoginFormProps {
   onSubmit: (credentials: { username: string; password: string }) => void;
@@ -8,16 +7,16 @@ interface LoginFormProps {
   errorMessage?: string | null;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({
+export const LoginForm = ({
   onSubmit,
   isLoading = false,
   errorMessage = null,
-}) => {
+}: LoginFormProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
     onSubmit({ username, password });
   };
 
@@ -30,7 +29,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         Login
       </h2>
 
-      {/* Error Message */}
       {errorMessage && (
         <div
           className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded relative"
@@ -40,7 +38,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </div>
       )}
 
-      {/* Username Input */}
       <div>
         <label
           htmlFor="username"
@@ -66,7 +63,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         />
       </div>
 
-      {/* Password Input */}
       <div>
         <label
           htmlFor="password"
@@ -92,7 +88,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         />
       </div>
 
-      {/* Submit Button */}
       <div>
         <button
           type="submit"

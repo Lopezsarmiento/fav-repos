@@ -1,4 +1,3 @@
-// src/pages/GitHubAuthCallbackPage.tsx
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../store/auth.store";
@@ -49,8 +48,6 @@ export const GitHubAuthCallbackPage = () => {
 
           const data = await response.json();
 
-          console.log("GitHub token exchange response:", data);
-
           if (data.access_token) {
             setGithubAccessToken(data.access_token);
             navigate("/repositories", { replace: true });
@@ -61,7 +58,6 @@ export const GitHubAuthCallbackPage = () => {
             );
           }
         } catch (err: unknown) {
-          console.error("GitHub token exchange error:", err);
           setError(
             err instanceof Error
               ? err.message

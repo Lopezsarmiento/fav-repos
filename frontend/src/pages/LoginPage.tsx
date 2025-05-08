@@ -1,21 +1,17 @@
-// src/pages/LoginPage.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoginForm } from "../features/auth/components/LoginForm";
 import { useAuthStore } from "../store/auth.store";
 
-// --- Updated Authentication Logic ---
-// Checks against credentials stored in localStorage by the Signup process.
 const checkCredentials = (username: string, password: string): boolean => {
   try {
     const storedCredentialsRaw = localStorage.getItem("userCredentials");
     if (!storedCredentialsRaw) {
       console.warn("No user credentials found in localStorage.");
-      return false; // No user registered
+      return false;
     }
     const storedCredentials = JSON.parse(storedCredentialsRaw);
 
-    // Basic check - WARNING: Comparing raw passwords. Insecure. Demo only.
     const isValid =
       storedCredentials.username === username &&
       storedCredentials.password === password;
@@ -31,7 +27,6 @@ const checkCredentials = (username: string, password: string): boolean => {
     return false;
   }
 };
-// --- End Updated Authentication Logic ---
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -46,8 +41,6 @@ export const LoginPage = () => {
     setIsLoading(true);
     setErrorMessage(null);
 
-    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate delay
-
     const isValid = checkCredentials(
       credentials.username,
       credentials.password
@@ -55,7 +48,6 @@ export const LoginPage = () => {
 
     if (isValid) {
       login({ username: credentials.username });
-      console.log("Login successful, navigating...");
       navigate("/", { replace: true });
     } else {
       setErrorMessage("Invalid username or password.");

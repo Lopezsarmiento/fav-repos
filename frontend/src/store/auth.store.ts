@@ -1,14 +1,10 @@
-// src/store/auth.store.ts
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-// Define the shape of the User object (simple for now)
 interface User {
   username: string;
-  // Add other details if needed later (e.g., from GitHub profile)
 }
 
-// Define the shape of the Auth state and actions
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
@@ -21,7 +17,6 @@ interface AuthState {
   removeFavoriteRepo: (repoId: string | number) => void;
 }
 
-// Create the store using persist middleware
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -47,9 +42,8 @@ export const useAuthStore = create<AuthState>()(
         })),
     }),
     {
-      name: "auth-storage", // Key used in localStorage
-      storage: createJSONStorage(() => localStorage), // Use localStorage for persistence
-      // Only persist these parts of the state
+      name: "auth-storage",
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,

@@ -1,5 +1,3 @@
-// src/features/auth/utils/pkce.ts
-
 /**
  * Generates a cryptographically random string for the PKCE code verifier.
  * @param length The length of the string to generate. Defaults to 64.
